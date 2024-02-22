@@ -1,4 +1,5 @@
 const { log } = require("./utils.js")
+const fb = require("./firebase.js") 
 
 const PORT = process.env.port | 3000
 
