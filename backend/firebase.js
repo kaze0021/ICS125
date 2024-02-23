@@ -7,11 +7,29 @@ require('dotenv').config()
 const { log } = require("./utils.js")
 
 const { initializeApp } = require("firebase/app")
-const { getFirestore, doc, setDoc, getDoc, query, collection, getDocs, deleteDoc, onSnapshot, updateDoc } = require("firebase/firestore")
+const {
+   getFirestore,
+   doc,
+   setDoc,
+   getDoc,
+   query,
+   collection,
+   getDocs,
+   deleteDoc,
+   onSnapshot,
+   updateDoc,
+} = require("firebase/firestore")
+
+const {
+   getAuth,
+   createUserWithEmailAndPassword,
+   signInWithEmailAndPassword
+} = require("firebase/auth")
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG)
 const firebase_app = initializeApp(firebaseConfig)
 const db = getFirestore(firebase_app)
+const auth = getAuth(firebase_app)
 
 log("Connected to Firebase!")
 
@@ -179,11 +197,49 @@ const setup_document_listener_path = (path, callback) => {
    })
 }
 
+/**
+ * creates firebase user & returns a small package of the UID & access token
+ * @param email string email
+ * @param password string password
+ */
+const signup = async (email, password) => {
+   try {
+      let user = (await createUserWithEmailAndPassword(auth, email, password)).user
+      log(`New user under email ${email} created!`)
+      return {
+         uid: user.uid,
+         accessToken: user.accessToken
+      }
+   } catch (e) {
+      log("Failed to create new users: " + e)
+   }
+}
+
+/**
+ * logs into firebase user & returns a small package of the UID & access token
+ * @param email string email
+ * @param password string password
+ */
+const login = async (email, password) => {
+   try {
+      let user = (await signInWithEmailAndPassword(auth, email, password)).user
+      log(`Login from email ${email}!`)
+      return {
+         uid: user.uid,
+         accessToken: user.accessToken
+      }
+   } catch (e) {
+      log("Failed to login: " + e)
+   }
+}
 
 /*
  * bye bye !!
  */
 module.exports = {
+   db,
+   auth,
+
    get_collection,
    delete_collection,
    set_doc,
@@ -196,5 +252,8 @@ module.exports = {
    delete_doc_path,
    setup_collection_listener,
    setup_document_listener,
-   setup_document_listener_path
+   setup_document_listener_path,
+
+   signup,
+   login
 }

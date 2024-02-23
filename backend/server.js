@@ -1,5 +1,5 @@
 const { log } = require("./utils.js")
-const fb = require("./firebase.js")
+const users = require("./users.js")
 
 const PORT = process.env.port | 3000
 
@@ -12,6 +12,8 @@ app.use(cors({ origin: "*" })) // accept from all origins for now, on prod chang
 app.use(body_parser.json())
 
 // set up req here
+app.post("/login", users.login)
+app.post("/signup", users.signup)
 
 app.get("/", (req, res) => {
    res.writeHead(200, { "Content-Type": "text/html" })
