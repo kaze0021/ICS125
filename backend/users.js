@@ -13,10 +13,17 @@ const login = async (req, res) => {
    }
 
    let user_packet = await fb.login(user.email, user.password)
-   if (user_packet) {
+   if (!user_packet.error) {
       res.status(200).json({ message: "Login successful!" })
    } else {
-      res.status(400).json({ message: "Couldn't login!" })
+      switch (user_packet.error) {
+         case "auth/invalid-credential":
+            res.status(400).json({ message: "Invalid email/password!" })
+            break;
+         default:
+            res.status(400).json({ message: "Couldn't login!" })
+            break;
+      }
    }
 }
 
@@ -27,7 +34,7 @@ const signup = async (req, res) => {
    }
 
    let user_packet = await fb.signup(user.email, user.password)
-   if (user_packet) {
+   if (!user_packet.error) {
       res.status(200).json({ message: "Login successful!" })
 
       // for new users, generate basic data for them
@@ -36,7 +43,14 @@ const signup = async (req, res) => {
          uid: user_packet.uid,
       })
    } else {
-      res.status(400).json({ message: "Couldn't login!" })
+      switch (user_packet.error) {
+         case "auth/email-already-in-use":
+            res.status(400).json({ message: "Account under that email already exists!" })
+            break;
+         default:
+            res.status(400).json({ message: "Couldn't sign up!" })
+            break;
+      }
    }
 }
 

@@ -212,6 +212,9 @@ const signup = async (email, password) => {
       }
    } catch (e) {
       log("Failed to create new users: " + e)
+      return {
+         error: e.code
+      }
    }
 }
 
@@ -230,6 +233,9 @@ const login = async (email, password) => {
       }
    } catch (e) {
       log("Failed to login: " + e)
+      return {
+         error: e.code
+      }
    }
 }
 
