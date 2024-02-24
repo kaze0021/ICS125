@@ -208,16 +208,6 @@ const signup = async (email, password) => {
       let user = (await createUserWithEmailAndPassword(auth, email, password)).user
       log(`New user under email ${email} created!`)
 
-      await setDoc(doc(db, "users", user.uid), {
-         email: user.email,
-         uid: user.uid,
-         healthData: {
-            waterIntakeOz: 0,
-            sleepHours: 0,
-            exerciseHours: 0
-         }
-      });
-
       return {
          uid: user.uid,
          accessToken: user.accessToken

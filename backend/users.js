@@ -35,12 +35,17 @@ const signup = async (req, res) => {
 
    let user_packet = await fb.signup(user.email, user.password)
    if (!user_packet.error) {
-      res.status(200).json({ message: "Login successful!", user_packet: user_packet })
+      res.status(200).json({ message: "Signup successful!", user_packet: user_packet })
 
       // for new users, generate basic data for them
       fb.set_doc("users", user_packet.uid, {
          email: user.email,
          uid: user_packet.uid,
+         healthData: {
+            waterIntakeOz: 0,
+            sleepHours: 0,
+            exerciseHours: 0
+         }
       })
    } else {
       switch (user_packet.error) {
