@@ -199,6 +199,7 @@ const setup_document_listener_path = (path, callback) => {
 
 /**
  * creates firebase user & returns a small package of the UID & access token
+ * initializes health data with default values.
  * @param email string email
  * @param password string password
  */
@@ -206,6 +207,17 @@ const signup = async (email, password) => {
    try {
       let user = (await createUserWithEmailAndPassword(auth, email, password)).user
       log(`New user under email ${email} created!`)
+
+      await setDoc(doc(db, "users", user.uid), {
+         email: user.email,
+         uid: user.uid,
+         healthData: {
+            waterIntakeOz: 0,
+            sleepHours: 0,
+            exerciseHours: 0
+         }
+      });
+
       return {
          uid: user.uid,
          accessToken: user.accessToken
