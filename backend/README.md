@@ -1,6 +1,8 @@
 # Mental Zots Backend
 The `backend` directory contains the source for the Mental Zots web server, running on NodeJS. 
 
+It functions as a basic REST http server. See [the server documentation](./server.md) for more information.
+
 To get started:
 ```console
 npm i
