@@ -557,6 +557,28 @@ const get_lifestyle_score = async (req, res) => {
    }
 }
 
+app.post("/update_location", async (req, res) => {
+   const { token, latitude, longitude } = req.body;
+   const uid = await get_user_id(token);
+   
+   if (uid == -1) {
+       return res.status(400).json({ message: "Invalid user session. Try logging in again." });
+   }
+
+   try {
+       // Assuming you add a function named updateLocation in users.js
+       const result = await users.updateLocation(uid, latitude, longitude);
+       if (result === 1) {
+           res.status(200).json({ message: "Location updated successfully!" });
+       } else {
+           res.status(500).json({ message: "Failed to update location." });
+       }
+   } catch (error) {
+       console.error("Failed to update location:", error);
+       res.status(500).json({ message: "Server error updating location." });
+   }
+});
+
 app.use(cors({ origin: "*" })) // accept from all origins for now, on prod change to specific URLs!
 app.use(body_parser.json())
 
