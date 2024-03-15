@@ -50,6 +50,67 @@ const get_user_data = async (uid) => {
    return await fb.get_doc("users", uid)
 }
 
+// returns the current date in ISO format
+// used for indexing into db
+const get_current_date = () => {
+   let d = new Date()
+   return d.toISOString().slice(0, 10)
+}
+
+// returns age in years of user
+const get_user_age_uid = async (uid) => {
+   return new Date(new Date() - new Date((await get_user_data(uid)).userData.birthday)).getFullYear() - 1970
+}
+
+const get_user_age = (birthday) => {
+   return new Date(new Date() - new Date(birthday)).getFullYear() - 1970
+}
+
+// returns health data based on day if exists, otherwise undefined
+const get_health_data = async (uid) => {
+   let all_data = await fb.get_doc('data', uid)
+   let current_date = get_current_date()
+   if (Object.keys(all_data).includes(current_date)) {
+      let data = all_data[current_date]
+      if (!Object.hasOwn(data, "water")) data.water = 0
+      if (!Object.hasOwn(data, "journal")) data.journal = ""
+      if (!Object.hasOwn(data, "sleep")) data.sleep = 0
+      if (!Object.hasOwn(data, "exercise")) data.exercise = 0
+
+      return data
+   }
+   return undefined
+}
+
+/* given health & user data, returns a filled prompt to go straight into gemini
+ * health data looks like this:
+ * {
+ *    exercise: 2.2,
+ *    sleep: 8.4,
+ *    water: 20,
+ *    journal: "Today I felt like..."
+ * }
+ * 
+ * user data looks like this:
+ * {
+ *    birthday: "2002-03-26",
+ *    gender: "Male",
+ *    height: 1,
+ *    weight: 100000
+ * }
+ * 
+ * We can get the age with get_user_age(), passing in the birthday
+ */
+
+const get_filled_prompt = (health_data, user_data) => {
+   let age = get_user_age(user_data.birthday)
+   
+   // TODO put working prompt here
+   // EXAMPLE:
+   return `List out mental and physical health advice for a ${age} year old ${user_data.gender} individual. Today, they drank about ${health_data.water} oz of water, ...`
+   // also once the health db is created, we can do something like "they drank X oz of water when its recommended they drink Y oz"
+}
+
 /**
  * Both login & signup run on the server after a POST request for either is received.
  * Both need a string email & password in the request body
@@ -92,10 +153,14 @@ const signup = async (req, res) => {
       fb.set_doc("users", user_packet.uid, {
          email: user.email,
          uid: user_packet.uid,
-         healthData: {
-            waterIntakeOz: 0,
-            sleepHours: 0,
-            exerciseHours: 0
+      })
+      // initialize their data
+      fb.set_doc("data", user_packet.uid, {
+         [get_current_date()]: {
+            water: 0,
+            sleep: 0,
+            exercise: 0,
+            journal: ""
          }
       })
    } else {
@@ -188,7 +253,7 @@ const update_user_water = async (req, res) => {
          return res.status(400).json({ message: "Invalid water amount" })
       }
 
-      if (await users.updateWaterIntake(uid, intake) == -1) {
+      if (await users.updateWaterIntake(uid, intake, get_current_date()) == -1) {
          res.status(400).json({ message: "Server error: Couldn't update water intake." })
       } else {
          res.status(200).json({ message: "Water intake successfully updated!" })
@@ -215,7 +280,7 @@ const update_user_sleep = async (req, res) => {
          return res.status(400).json({ message: "Invalid sleep amount" })
       }
 
-      if (await users.updateSleepHours(uid, hours) == -1) {
+      if (await users.updateSleepHours(uid, hours, get_current_date()) == -1) {
          res.status(400).json({ message: "Server error: Couldn't update sleep amount." })
       } else {
          res.status(200).json({ message: "Sleep amount successfully updated!" })
@@ -242,11 +307,69 @@ const update_user_exercise = async (req, res) => {
          return res.status(400).json({ message: "Invalid exercise amount" })
       }
 
-      if (await users.updateExerciseHours(uid, hours) == -1) {
+      if (await users.updateExerciseHours(uid, hours, get_current_date()) == -1) {
          res.status(400).json({ message: "Server error: Couldn't update exercise amount." })
       } else {
          res.status(200).json({ message: "Exercise amount successfully updated!" })
       }
+   } catch(e) {
+      log("Error: " + e)
+      res.status(400).json({ message: "Invalid or malformed request" })
+   }
+}
+
+const update_user_journal = async (req, res) => {
+   try {
+      let token = req.body.token
+      let journal = req.body.data.toString()
+      let uid = await get_user_id(token)
+
+      if (uid == -1) {
+         return res.status(400).json({ message: "Invalid user session. Try logging in again." })
+      } else if (journal == "") {
+         return res.status(400).json({ message: "Invalid journal entry" })
+      }
+
+      if (await users.updateJournal(uid, journal, get_current_date()) == -1) {
+         res.status(400).json({ message: "Server error: Couldn't update journal." })
+      } else {
+         res.status(200).json({ message: "Journal amount successfully updated!" })
+      }
+   } catch(e) {
+      log("Error: " + e)
+      res.status(400).json({ message: "Invalid or malformed request" })
+   }
+}
+
+const get_advice = async (req, res) => {
+   try {
+      let token = req.body.token
+      let uid = await get_user_id(token)
+
+      if (uid == -1) {
+         return res.status(400).json({ message: "Invalid user session. Try logging in again." })
+      }
+      
+      let health_data = await get_health_data()
+      let user_data = await get_user_data()
+
+      if (!Object.hasOwn(user_data, "userData")) {
+         return res.status(400).json({ message: "User account not set up!" })
+      }
+
+      user_data = user_data.userData
+
+      if (health_data == undefined) {
+         return res.status(400).json({ message: "No health data for today!" })
+      } else if (health_data.journal == undefined || health_data.journal == "") {
+         return res.status(400).json({ message: "No journal entry for today!" })
+      }
+
+      let prompt = get_filled_prompt(health_data, user_data)
+
+      // TODO: pass prompt into gemini, await output, then send it back to the user. 
+      // for the json response body, keep the message entry like before, but include 
+      // a "advice" attribute containing gemini's advice
    } catch(e) {
       log("Error: " + e)
       res.status(400).json({ message: "Invalid or malformed request" })
@@ -263,6 +386,8 @@ app.post("/set_user_data", set_user_data)
 app.post("/update_water", update_user_water)
 app.post("/update_exercise", update_user_exercise)
 app.post("/update_sleep", update_user_sleep)
+app.post("/update_journal", update_user_journal)
+app.post("/get_advice", get_advice)
 
 app.get("/", (req, res) => {
    res.writeHead(200, { "Content-Type": "text/html" })
