@@ -57,6 +57,10 @@ const get_current_date = () => {
    return d.toISOString().slice(0, 10)
 }
 
+const get_date_as_key = (date) => {
+   return date.slice(0, 10)
+}
+
 // returns age in years of user
 const get_user_age_uid = async (uid) => {
    return new Date(new Date() - new Date((await get_user_data(uid)).userData.birthday)).getFullYear() - 1970
@@ -73,9 +77,31 @@ const get_health_data = async (uid) => {
    if (Object.keys(all_data).includes(current_date)) {
       let data = all_data[current_date]
       if (!Object.hasOwn(data, "water")) data.water = 0
+      else data.water = parseFloat(data.water)
       if (!Object.hasOwn(data, "journal")) data.journal = ""
       if (!Object.hasOwn(data, "sleep")) data.sleep = 0
+      else data.sleep = parseFloat(data.sleep)
       if (!Object.hasOwn(data, "exercise")) data.exercise = 0
+      else data.exercise = parseFloat(data.exercise)
+
+      return data
+   }
+   return undefined
+}
+
+// returns health data (if any) on a certain date. date = ISO string 
+const get_health_data_on_date = async(uid, date) => {
+   let all_data = await fb.get_doc("data", uid)
+   let target_date = get_date_as_key(date)
+   if (Object.keys(all_data).includes(target_date)) {
+      let data = all_data[target_date]
+      if (!Object.hasOwn(data, "water")) data.water = 0
+      else data.water = parseFloat(data.water)
+      if (!Object.hasOwn(data, "journal")) data.journal = ""
+      if (!Object.hasOwn(data, "sleep")) data.sleep = 0
+      else data.sleep = parseFloat(data.sleep)
+      if (!Object.hasOwn(data, "exercise")) data.exercise = 0
+      else data.exercise = parseFloat(data.exercise)
 
       return data
    }
@@ -111,6 +137,73 @@ const get_recommended_amount_of = async (age, gender, category) => {
    if (!["Male", "Female", "Non-Binary"].includes(gender)) return [-1, -1]
    if (!["sleep", "exercise", "water"].includes(category)) return [-1, -1]
    return (await fb.get_doc("recommendations", age_to_key(age)))[gender_to_key(gender)][category]
+}
+
+// given a UID, return a lifestyle score [0, 1] inclusive that rates how well their habits are getting along, from 0 (poor habits) to 1 (perfect habits)
+// will look at data up to 2 weeks in the past (if applicable)
+const calculate_lifestyle_score = async (uid) => {
+   // weights of our scores
+   let sleep_weight = 0.5
+   let water_weight = 0.35
+   let exercise_weight = 0.15
+
+   let user_data = (await get_user_data(uid)).userData
+   let score = 0
+
+   let avg_exercise = 0
+   let avg_sleep = 0
+   let avg_water = 0
+   let days_counted = 0
+
+   // count backwards day by day, determining our avg stats
+   let start_date = new Date(get_current_date())
+   for (let i = 0; i < 14; i++) {
+      // get date in ISO key format from i days ago
+      let d = new Date()
+      d.setDate(start_date.getDate() - i)
+      let date = get_date_as_key(d.toISOString())
+
+      let data = await get_health_data_on_date(uid, date)
+
+      if (data) {
+         days_counted += 1
+         avg_exercise += data.exercise
+         avg_sleep += data.sleep
+         avg_water += data.water
+      }
+      // there was no data, so continue to end
+   }
+
+   if (days_counted != 0) {
+      avg_exercise /= days_counted
+      avg_sleep /= days_counted
+      avg_water /= days_counted
+   }
+
+   let get_average = (list) => {
+      if (list === undefined) return 0
+      if (list[0] == -1) return 0
+      return (list[0] + list[1]) / 2.
+   }
+
+   // determine our recommended amounts based on user data
+   // we can avg the max & min
+   let recommended_water = get_average(await get_recommended_amount_of(get_user_age(user_data.birthday), user_data.gender, "water"))
+   let recommended_sleep = get_average(await get_recommended_amount_of(get_user_age(user_data.birthday), user_data.gender, "sleep"))
+   let recommended_exercise = get_average(await get_recommended_amount_of(get_user_age(user_data.birthday), user_data.gender, "exercise"))
+   
+   // compare our last 2 weeks avg & combine to get a score. make maximum 1 (cannot exceed)
+   let water_score = Math.min(avg_water / recommended_water, 1)
+   let exercise_score = Math.min(avg_exercise / recommended_exercise, 1)
+   let sleep_score = Math.min(avg_sleep / recommended_sleep, 1)
+
+   // weight our scores + add a padding & return
+   
+   let final_score = Math.min(0.15 + 0.85 * (water_score * water_weight + exercise_score * exercise_weight + sleep_score * sleep_weight), 1)
+
+   if (isNaN(final_score)) return 0.15
+
+   return final_score
 }
 
 /* given health & user data, returns a filled prompt to go straight into gemini
@@ -406,6 +499,24 @@ const get_advice = async (req, res) => {
    }
 }
 
+const get_lifestyle_score = async (req, res) => {
+   try {
+      let token = req.body.token
+      let uid = await get_user_id(token)
+
+      if (uid == -1) {
+         return res.status(400).json({ message: "Invalid user session. Try logging in again." })
+      }
+
+      let score = await calculate_lifestyle_score(uid)
+
+      return res.status(200).json({ message: "Score obtained", score: score })
+   } catch(e) {
+      log("Error: " + e)
+      res.status(400).json({ message: "Invalid or malformed request", advice: "Invalid" })
+   }
+}
+
 app.use(cors({ origin: "*" })) // accept from all origins for now, on prod change to specific URLs!
 app.use(body_parser.json())
 
@@ -418,6 +529,7 @@ app.post("/update_exercise", update_user_exercise)
 app.post("/update_sleep", update_user_sleep)
 app.post("/update_journal", update_user_journal)
 app.post("/get_advice", get_advice)
+app.post("/get_lifestyle_score", get_lifestyle_score)
 
 app.get("/", (req, res) => {
    res.writeHead(200, { "Content-Type": "text/html" })
