@@ -152,6 +152,45 @@ export default function App() {
     }
   }
 
+  const attempt_get_advice = async () => {
+    try {
+      let response = await (await fetch("http://localhost:3000/get_advice", {
+        method: "POST",
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: access_token,
+        })
+      })).json()
+
+      alert(response.message)
+    } catch (e) {
+      console.log(e.response.message)
+    }
+  }
+
+
+  const attempt_get_lifestyle_score = async () => {
+    try {
+      let response = await (await fetch("http://localhost:3000/get_lifestyle_score", {
+        method: "POST",
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: access_token,
+        })
+      })).json()
+
+      alert(response.score)
+    } catch (e) {
+      console.log(e.response.message)
+    }
+  }
+
   return (
     <SafeAreaView  style={styles.container}>
       <Text style={styles.header1}>MentalZots</Text>
@@ -200,6 +239,12 @@ export default function App() {
           <TextInput placeholder="exercise time (hours)" onChangeText={t => setExercise(t)} />
           <Pressable style={styles.button} onPress={() => attempt_set_exercise()}>
             <Text>Set Exercise</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={() => attempt_get_advice()}>
+            <Text>Get Advice</Text>
+          </Pressable>
+         <Pressable style={styles.button} onPress={() => attempt_get_lifestyle_score()}>
+            <Text>Get Lifestyle Score</Text>
           </Pressable>
         </View>
       </SafeAreaView>
