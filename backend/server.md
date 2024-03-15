@@ -1,29 +1,63 @@
 # Users & the User Database
-We'll use Firebase for user authentication and the health/user databases. 
+We use Firebase for user authentication and the health/user databases. 
 
-## Structure
-When a user creates an account, a new document is generated in the `users` collection based on their firebase UID. This document starts out with very basic user information, and will grow as the user uses the app. For now, it contains only their email & UID. In the future, it may contain information like personalized health data or login frequency. We can utilize Firebase rules to ensure only properly authenticated users can access the data that only they own, not anyone elses.
+## Process
+When users sign up, they are registered with Firebase authentication, which generates a new unique user identification number or `uid`.
+
+Several new documents in our databases are also created. First, users recieve a user data document in the `users` collection with basic user information. They also start a document in the `data` collection which contains a list of their daily inputs.
+
+We can utilize Firebase rules to ensure only properly authenticated users can access the data that only they own, not anyone elses. Collections are indexed by uid, and we have configured Firebase to only allow users logged in with a certain uid to read/write documents of their uid.
 
 ## Schema Overview
-We have 2 separate collections, one to record the valid running user sessions and one to record our user data.
+We have 3 separate collections:
+- Sessions: records active user sessions by corroborating access tokens with user ids
+- Users: stores lasting user data like their personal information & email
+- Data: for each user, stores one entry per day of inputted information
 
 ### Sessions
 In the `sessions` collection, each document acts as a key that corresponds to a valid access token. Users can only access their own access tokens as dicated by the server & firebase rules. The document has a `uid` field that corresponds to the user's UID. This is used for indexing into the `users` collection.
 
+Example:
+
+```python
+sessions -> <session access token> -> {
+   uid: "<user uid from firebase>"
+}
+```
+
 ### Users
-The `users` collection contains one document named by the `uid` for each user. When a user first signs up, their document doesn't contain much data:
+The `users` collection contains one document named by the `uid` for each user. When a user first signs up, their document doesn't contain much data. They need to complete an additional step, the `set_user_data` step to fully initialize their profile. This MUST be completed.
 
-```
-email: "user_email@mail.com",
-healthData: {
-   exerciseHours: 0,
-   sleepHours: 0,
-   waterIntakeOz: 0
-},
-uid: "uid..."
+Example:
+```python
+users -> <uid> -> {
+   email: "<user email>",
+   uid: "<uid>",
+   userData: {
+      birthday: "1900-03-23",
+      gender: "Male",
+      height: 4.2,
+      weight: 120
+   }
+}
 ```
 
-Once they complete their full signup (adding their user data), we should also see a `userData` map containing information like their birthday, height, weight, and gender.
+### Data
+The `data` collection holds all daily inputted information from all users, with one document for each user indexed by `uid`. The document contains numerous fields indexed by the ISO date, with each field being a map containing the daily exercise amount, sleep amount, water intake, and journal for the day.
+
+Example:
+```python
+data -> <uid> -> {
+   "2024-03-12": { ... },
+   "2024-03-13": { ... },
+   "2024-03-14": {
+      exercise: 2,
+      sleep: 8.3,
+      water: 20,
+      journal: "I had a final today and felt very stressed..."
+   }
+}
+```
 
 # POST requests
 Note that most requests will return a status (successful: 200, error: 400, etc) alongside a JSON body with a string called `message` highlighting the success/error.
@@ -111,7 +145,7 @@ Returns status `400` on error and `200` on success. JSON response body contains 
 - `data`: float for exercise amount in hours
 
 ### Usage
-Updates water usage in user data.
+Updates water usage for the day.
 
 ### Response
 Returns status `400` on error and `200` on success. JSON response body contains the following:
@@ -123,14 +157,32 @@ Returns status `400` on error and `200` on success. JSON response body contains 
 - `data`: float for sleep amount in hours
 
 ### Usage
-Updates water usage in user data.
+Updates water usage for the day.
 
 ### Response
 Returns status `400` on error and `200` on success. JSON response body contains the following:
 - `message`: string status message
 
 ## `/set_journal`
-TODO
+### JSON Body Requirements:
+- `token`: valid string access token for an existing user session. tokens are returned on a successful login/signup
+- `data`: string journal entry for the day
+
+### Usage
+Updates user's journal entry for the day.
+
+### Response
+Returns status `400` on error and `200` on success. JSON response body contains the following:
+- `message`: string status message
 
 ## `/get_advice`
-TODO
+### JSON Body Requirements:
+- `token`: valid string access token for an existing user session. tokens are returned on a successful login/signup
+
+### Usage
+Once the user has inputted all of their daily data (especially the journal), the client makes a POST request to `/get_advice` to get back personalized advice from Gemini.
+
+### Response
+Returns status `400` on error and `200` on success. JSON response body contains the following:
+- `message`: string status message
+- `advice`: string message of advice from Gemini
