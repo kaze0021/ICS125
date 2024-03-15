@@ -1,5 +1,6 @@
 const { log } = require("./utils.js")
 const users = require("./users.js")
+const { generateText } = require("./geminiAdvice.js"); 
 
 const PORT = process.env.port | 3000
 
@@ -226,12 +227,46 @@ const calculate_lifestyle_score = async (uid) => {
  * We can get the age with get_user_age(), passing in the birthday
  */
 
-const get_filled_prompt = async (health_data, user_data) => {
+const get_filled_prompt = async (health_data, user_data, uid) => {
    let age = get_user_age(user_data.birthday)
+   let hours = current_time.getHours(); //24 hr format
+   let minutes = current_time.getMinutes();
+
    // TODO put working prompt here
+   let lifestyle_score = await calculate_lifestyle_score(uid);
+
+   let recommendedWater = await get_recommended_amount_of(age, user_data.gender, "water");
+   let recommendedSleep = await get_recommended_amount_of(age, user_data.gender, "sleep");
+   let recommendedExercise = await get_recommended_amount_of(age, user_data.gender, "exercise");
+
+   if(recommendedWater[0] === -1 || recommendedSleep[0] === -1 || recommendedExercise[0] === -1) {
+      res.status(400).json({ message: "Recommended error: Couldn't get recommended amount." })
+   }
+
+   let averageRecommendedWater = (recommendedWater[0] + recommendedWater[1]) / 2;
+   let averageRecommendedSleep = (recommendedSleep[0] + recommendedSleep[1]) / 2;
+   let averageRecommendedExercise = (recommendedExercise[0] + recommendedExercise[1]) / 2;
+
+   let location = "Irvine, CA, USA"; //TODO 
+   
+   // TODO put working prompt here
+   let prompt =  `As a ${user.gender} of ${age} years old where I'm ${user.height}ft tall and ${user.weight}lbs heavy, I drank ${health_data.water} oz of water, slept ${health_data.sleep} hrs, and exercised ${health_data.exercise} hrs today.
+
+      Currently I am located in ${location} and it is currently ${hours}:${minutes}.
+      Additionally here is my journal entry stating what I want to improve on: ${health_data.journal} and my current lifestyle score ${lifestyle_score}. A bad lifestyle score is 0.15 and a good lifestyle score is 1.0. 
+      
+      For someone my age, gender, height, and weight it is recommended that I drink on average ${averageRecommendedWater} oz of water, sleep on average ${averageRecommendedSleep} hrs, and exercise on average ${averageRecommendedExercise} hrs to receive optimal mental health benefits.
+      
+      To optimize my mental health through improving my physical health and lifestyle score, give me 15 total recommendations to improve a certain subcategory: water, sleep, exercise. 
+      These categories are weighted by importance. For our algorithm we chose to have sleep equate to about 50% of the score, water intake 35%, and exercies 15%.
+      Out of those 15 recommendations, the number of recommendations per subcategory will vary based on the difference in average recommended subcategory amount and my actual subcategory amount.
+      The larger the difference and the larger the weight of subcategory, generate ideas on how  can improve.
+      
+      `;
+      
    // EXAMPLE:
-   return `List out mental and physical health advice for a ${age} year old ${user_data.gender} individual. Today, they drank about ${health_data.water} oz of water, ...`
-   // also once the health db is created, we can do something like "they drank X oz of water when its recommended they drink Y oz"
+   //return `List out mental and physical health advice for a ${age} year old ${user_data.gender} individual. Today, they drank about ${health_data.water} oz of water, ...`
+   return prompt;
 }
 
 /**
@@ -488,11 +523,16 @@ const get_advice = async (req, res) => {
          return res.status(400).json({ message: "No journal entry for today!" })
       }
 
-      let prompt = get_filled_prompt(health_data, user_data)
+      let prompt = get_filled_prompt(health_data, user_data, uid)
 
       // TODO: pass prompt into gemini, await output, then send it back to the user. 
       // for the json response body, keep the message entry like before, but include 
       // a "advice" attribute containing gemini's advice
+      
+      // from geminiAdvice.js
+      const geminiAdvice = await generateText(prompt, generationConfig);
+      return res.status(200).json({ message: "Success!", advice: geminiAdvice });
+
    } catch(e) {
       log("Error: " + e)
       res.status(400).json({ message: "Invalid or malformed request", advice: "Invalid" })
