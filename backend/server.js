@@ -95,7 +95,7 @@ const gender_to_key = (gender) => {
 // gets an age category to use as a key from number age
 // returns one of the following: child, teen, young adult, adult, elderly
 const age_to_key = (age) => {
-   if (age < 12) return "child"
+   if (age <= 12) return "child"
    else if (age <= 17) return "teen"
    else if (age <= 29) return "youngadult"
    else if (age <= 64) return "adult"

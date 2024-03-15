@@ -9,10 +9,31 @@ Several new documents in our databases are also created. First, users recieve a 
 We can utilize Firebase rules to ensure only properly authenticated users can access the data that only they own, not anyone elses. Collections are indexed by uid, and we have configured Firebase to only allow users logged in with a certain uid to read/write documents of their uid.
 
 ## Schema Overview
-We have 3 separate collections:
+We have 4 separate collections:
+- Recommendations: a database of recommended levels of exercise, sleep, & water intake aggregated from numerous web sources and indexable by age & gender
 - Sessions: records active user sessions by corroborating access tokens with user ids
 - Users: stores lasting user data like their personal information & email
 - Data: for each user, stores one entry per day of inputted information
+
+### Recommendations
+Compiled from various web sources such as posts from organizations like the CDC or health websites, this static repository contains recommended amounts of water, sleep, and exercise depending on age & gender. It is indexable with those and returns a range in the form of an array: `[minimum_amount, maximum_amount]`. Errors will return `[-1, -1]`
+
+The first index required is the **age category**, which MUST be one of the following (case sensitive): `[child, teen, youngadult, adult, elderly]`. These correspond to the following age ranes (inclusive): 0-12, 13-17, 18-29, 30-64, 65+.
+
+Next, we must index by **gender**, which MUST be (case sensitive) `[male, female, nonbinary]`. 
+
+Finally, we can index by the **category** we are getting a reccomendation for, which must be one of `[sleep, water, exercise]`. The sleep & exercise is stored in hours, and the water is stored in fluid ounces.
+
+Layout:
+```python
+recommendations -> <age category> -> <gender> -> <category>
+```
+
+Example:
+```python
+recommendations -> youngadult -> female -> sleep 
+```
+The above query would return `[8, 11]`, meaning a female young adult should be sleeping around 8-11 hours per night.
 
 ### Sessions
 In the `sessions` collection, each document acts as a key that corresponds to a valid access token. Users can only access their own access tokens as dicated by the server & firebase rules. The document has a `uid` field that corresponds to the user's UID. This is used for indexing into the `users` collection.
