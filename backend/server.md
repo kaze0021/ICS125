@@ -80,6 +80,17 @@ data -> <uid> -> {
 }
 ```
 
+# Lifestyle Scoring
+In order to obtain a lifestyle score, we can use the recommended goals for water intake, sleep, and exercise for each user based on their height, weight, gender, and age.
+
+With that in mind, we can see how close they get to the recommended amounts, averaging their metrics for up to a 14 days ago. We chose to cap it at 14 days as we felt 2 weeks was ample time for consistent habits to show benefits but short enough that previous bad habits wouldn't linger and negatively affect the score.
+
+We can then weight these sub-scores based on importance. For our algorithm we chose to have sleep equate to about 50% of the score, water intake 35%, and exercies 15%.
+
+Once the calculations are complete, a score between 0.15 and 1.0 is returned, where higher values denote better daily habits and lower scores highlight the need for healthier goals.
+
+See below for how to obtain a lifestyle score with an HTTP request.
+
 # POST requests
 Note that most requests will return a status (successful: 200, error: 400, etc) alongside a JSON body with a string called `message` highlighting the success/error.
 
@@ -207,3 +218,15 @@ Once the user has inputted all of their daily data (especially the journal), the
 Returns status `400` on error and `200` on success. JSON response body contains the following:
 - `message`: string status message
 - `advice`: string message of advice from Gemini
+
+## `/get_lifestyle_score`
+### JSON Body Requirements:
+- `token`: valid string access token for an existing user session. tokens are returned on a successful login/signup
+
+### Usage
+Averages user metrics for up to 14 days in the past, comparing them to their recommended values based on personal data to obtain a single score from 0.15 to 1.0 inclusive.
+
+### Response
+Returns status `400` on error and `200` on success. JSON response body contains the following:
+- `message`: string status message
+- `score`: a float score
