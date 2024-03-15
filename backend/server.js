@@ -82,6 +82,37 @@ const get_health_data = async (uid) => {
    return undefined
 }
 
+// standardizes gender for use as a key in firebase
+const gender_to_key = (gender) => {
+   switch (gender) {
+      default: return "male"; break
+      case "Male": return "male"; break
+      case "Female": return "female"; break
+      case "Non-Binary": return "non-binary"; break
+   }
+}
+
+// gets an age category to use as a key from number age
+// returns one of the following: child, teen, young adult, adult, elderly
+const age_to_key = (age) => {
+   if (age < 12) return "child"
+   else if (age <= 17) return "teen"
+   else if (age <= 29) return "youngadult"
+   else if (age <= 64) return "adult"
+   else return "elderly"
+}
+
+// given a user's age & gender, return their recommended amonut of some category
+// age: some int age
+// gender: either [Male, Female, Non-Binary] (case sensitive)
+// category: either [sleep, exercise, water]
+const get_recommended_amount_of = async (age, gender, category) => {
+   if (!isNumber(age) || isNaN(age)) return [-1, -1]
+   if (!["Male", "Female", "Non-Binary"].includes(gender)) return [-1, -1]
+   if (!["sleep", "exercise", "water"].includes(category)) return [-1, -1]
+   return (await fb.get_doc("recommendations", age_to_key(age)))[gender_to_key(gender)][category]
+}
+
 /* given health & user data, returns a filled prompt to go straight into gemini
  * health data looks like this:
  * {
@@ -102,9 +133,8 @@ const get_health_data = async (uid) => {
  * We can get the age with get_user_age(), passing in the birthday
  */
 
-const get_filled_prompt = (health_data, user_data) => {
+const get_filled_prompt = async (health_data, user_data) => {
    let age = get_user_age(user_data.birthday)
-   
    // TODO put working prompt here
    // EXAMPLE:
    return `List out mental and physical health advice for a ${age} year old ${user_data.gender} individual. Today, they drank about ${health_data.water} oz of water, ...`
@@ -350,9 +380,9 @@ const get_advice = async (req, res) => {
          return res.status(400).json({ message: "Invalid user session. Try logging in again." })
       }
       
-      let health_data = await get_health_data()
-      let user_data = await get_user_data()
-
+      let health_data = await get_health_data(uid)
+      let user_data = await get_user_data(uid)
+ 
       if (!Object.hasOwn(user_data, "userData")) {
          return res.status(400).json({ message: "User account not set up!" })
       }
@@ -372,7 +402,7 @@ const get_advice = async (req, res) => {
       // a "advice" attribute containing gemini's advice
    } catch(e) {
       log("Error: " + e)
-      res.status(400).json({ message: "Invalid or malformed request" })
+      res.status(400).json({ message: "Invalid or malformed request", advice: "Invalid" })
    }
 }
 
