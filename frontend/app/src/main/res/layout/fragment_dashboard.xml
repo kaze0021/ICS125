@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.dashboard.DashboardFragment">
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="139dp"
+        android:layout_height="111dp"
+        android:layout_marginStart="100dp"
+        android:src="@drawable/dall_e_2024_02_22_20_20_29___create_a_generic_user_profile_image_that_depicts_a_real_person_in_a_professional_and_neutral_setting__the_person_should_have_a_friendly_and_approachab"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.209"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.021" />
+
+    <EditText
+        android:id="@+id/editTextText2"
+        style="@android:style/Widget.Material.EditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@null"
+        android:clickable="true"
+        android:ems="10"
+        android:focusable="false"
+        android:inputType="text"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:text="User1"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="73dp"
+        android:layout_height="97dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="12dp"
+        android:src="@drawable/_4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+
+    <EditText
+        android:id="@+id/editTextText12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@null"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Water Intake"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/imageView4"
+        app:layout_constraintHorizontal_bias="0.527"
+        app:layout_constraintStart_toStartOf="@+id/imageView4"
+        app:layout_constraintTop_toBottomOf="@+id/imageView4" />
+
+    <EditText
+        android:id="@+id/editTextText4"
+        android:layout_width="105dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="32dp"
+        android:background="@null"
+        android:ems="10"
+        android:focusable="false"
+        android:text="3 Cups"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/imageView4"
+        app:layout_constraintStart_toStartOf="@+id/imageView4"
+        app:layout_constraintTop_toBottomOf="@+id/imageView4" />
+
+    <EditText
+        android:id="@+id/editTextText11"
+        android:layout_width="102dp"
+        android:layout_height="17dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:ems="10"
+        android:inputType="text"
+        android:text="LifeStyle Score"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/imageView7"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView7"
+        app:layout_constraintTop_toBottomOf="@+id/imageView7" />
+
+    <EditText
+        android:id="@+id/editTextText18"
+        android:layout_width="105dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="36dp"
+        android:background="@null"
+        android:ems="10"
+        android:focusable="false"
+        android:text="76/100"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/imageView7"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView7"
+        app:layout_constraintTop_toBottomOf="@+id/imageView7" />
+
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="102dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="28dp"
+        android:src="@drawable/lifestyle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText4" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="99dp"
+        android:layout_height="102dp"
+        android:layout_marginStart="41dp"
+        android:layout_marginTop="12dp"
+        android:src="@drawable/_3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.565"
+        app:layout_constraintStart_toEndOf="@+id/imageView4"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+
+    <ImageView
+        android:id="@+id/imageView8"
+        android:layout_width="93dp"
+        android:layout_height="97dp"
+        android:layout_marginTop="96dp"
+        android:src="@drawable/_7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.651"
+        app:layout_constraintStart_toEndOf="@+id/imageView7"
+        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
+
+    <EditText
+        android:id="@+id/editTextText6"
+        android:layout_width="105dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="36dp"
+        android:background="@null"
+        android:ems="10"
+        android:focusable="false"
+        android:text="6 h 18 mins"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/imageView8"
+        app:layout_constraintHorizontal_bias="0.75"
+        app:layout_constraintStart_toStartOf="@+id/imageView8"
+        app:layout_constraintTop_toBottomOf="@+id/imageView8" />
+
+    <EditText
+        android:id="@+id/editTextText9"
+        android:layout_width="102dp"
+        android:layout_height="17dp"
+        android:layout_marginTop="16dp"
+        android:background="@null"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Sleep Time"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/imageView8"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView8"
+        app:layout_constraintTop_toBottomOf="@+id/imageView8" />
+
+    <EditText
+        android:id="@+id/editTextText8"
+        android:layout_width="127dp"
+        android:layout_height="19dp"
+        android:layout_marginTop="20dp"
+        android:background="@null"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Exercise time"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/imageView5"
+        app:layout_constraintHorizontal_bias="0.214"
+        app:layout_constraintStart_toStartOf="@+id/imageView5"
+        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
+
+    <EditText
+        android:id="@+id/editTextText5"
+        android:layout_width="105dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="28dp"
+        android:background="@null"
+        android:ems="10"
+        android:focusable="false"
+        android:text="43 mins"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/imageView5"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="@+id/imageView5"
+        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
