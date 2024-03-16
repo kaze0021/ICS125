@@ -522,14 +522,14 @@ const get_advice = async (req, res) => {
          return res.status(400).json({ message: "No journal entry for today!" })
       }
 
-      let prompt = get_filled_prompt(health_data, user_data, uid)
+      let promptd = await get_filled_prompt(health_data, user_data, uid)
 
       // TODO: pass prompt into gemini, await output, then send it back to the user. 
       // for the json response body, keep the message entry like before, but include 
       // a "advice" attribute containing gemini's advice
       
       // from geminiAdvice.js
-      const geminiAdvice = await generateText(prompt);
+      const geminiAdvice = await generateText(promptd);
       return res.status(200).json({ message: "Success!", advice: geminiAdvice });
 
    } catch(e) {
