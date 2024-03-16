@@ -255,7 +255,7 @@ const get_filled_prompt = async (health_data, user_data, uid) => {
    let averageRecommendedSleep = (recommendedSleep[0] + recommendedSleep[1]) / 2;
    let averageRecommendedExercise = (recommendedExercise[0] + recommendedExercise[1]) / 2;
 
-   let location = "Irvine, CA, USA"; //TODO 
+   let location = user_data.location.address || "Irvine, CA, USA"; 
    
    // TODO put working prompt here
    let prompt =  `As a ${user_data.gender} of ${age} years old where I'm ${user_data.height}ft tall and ${user_data.weight}lbs heavy, I drank ${health_data.water} oz of water, slept ${health_data.sleep} hrs, and exercised ${health_data.exercise} hrs today.
@@ -564,6 +564,27 @@ const get_lifestyle_score = async (req, res) => {
       res.status(400).json({ message: "Invalid or malformed request", advice: "Invalid" })
    }
 }
+
+app.post("/update_location", async (req, res) => {
+   const { token, latitude, longitude } = req.body;
+   const uid = await get_user_id(token);
+   
+   if (uid == -1) {
+       return res.status(400).json({ message: "Invalid user session. Try logging in again." });
+   }
+
+   try {
+       const result = await users.updateLocation(uid, latitude, longitude);
+       if (result === 1) {
+           res.status(200).json({ message: "Location updated successfully!" });
+       } else {
+           res.status(500).json({ message: "Failed to update location." });
+       }
+   } catch (error) {
+       console.error("Failed to update location:", error);
+       res.status(500).json({ message: "Server error updating location." });
+   }
+});
 
 app.use(cors({ origin: "*" })) // accept from all origins for now, on prod change to specific URLs!
 app.use(body_parser.json())
