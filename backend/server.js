@@ -53,7 +53,15 @@ const get_user_data = async (uid) => {
 // used for indexing into db
 const get_current_date = () => {
    let d = new Date()
+   d.setHours(d.getHours()-8)
    return d.toISOString().slice(0, 10)
+}
+
+// gets current date in PST
+const get_current_date_as_date = () => {
+	let d = new Date()
+	d.setHours(d.getHours() - 8)
+	return d
 }
 
 const get_date_as_key = (date) => {
@@ -155,10 +163,11 @@ const calculate_lifestyle_score = async (uid) => {
    let days_counted = 0
 
    // count backwards day by day, determining our avg stats
-   let start_date = new Date(get_current_date())
+   //let start_date = new Date(get_current_date())
+   let start_date = get_current_date_as_date()
    for (let i = 0; i < 14; i++) {
       // get date in ISO key format from i days ago
-      let d = new Date()
+      let d = get_current_date_as_date()
       d.setDate(start_date.getDate() - i)
       let date = get_date_as_key(d.toISOString())
 
@@ -227,7 +236,7 @@ const calculate_lifestyle_score = async (uid) => {
 
 const get_filled_prompt = async (health_data, user_data, uid) => {
    let age = get_user_age(user_data.birthday)
-   let current_time = new Date()
+   let current_time = get_current_date_as_date()
    let hours = current_time.getHours(); //24 hr format
    let minutes = current_time.getMinutes();
 
