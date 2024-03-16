@@ -227,6 +227,7 @@ const calculate_lifestyle_score = async (uid) => {
 
 const get_filled_prompt = async (health_data, user_data, uid) => {
    let age = get_user_age(user_data.birthday)
+   let current_time = new Date()
    let hours = current_time.getHours(); //24 hr format
    let minutes = current_time.getMinutes();
 
@@ -248,7 +249,7 @@ const get_filled_prompt = async (health_data, user_data, uid) => {
    let location = "Irvine, CA, USA"; //TODO 
    
    // TODO put working prompt here
-   let prompt =  `As a ${user.gender} of ${age} years old where I'm ${user.height}ft tall and ${user.weight}lbs heavy, I drank ${health_data.water} oz of water, slept ${health_data.sleep} hrs, and exercised ${health_data.exercise} hrs today.
+   let prompt =  `As a ${user_data.gender} of ${age} years old where I'm ${user_data.height}ft tall and ${user_data.weight}lbs heavy, I drank ${health_data.water} oz of water, slept ${health_data.sleep} hrs, and exercised ${health_data.exercise} hrs today.
 
       Currently I am located in ${location} and it is currently ${hours}:${minutes}.
       Additionally here is my journal entry stating what I want to improve on: ${health_data.journal} and my current lifestyle score ${lifestyle_score}. A bad lifestyle score is 0.15 and a good lifestyle score is 1.0. 
@@ -528,7 +529,7 @@ const get_advice = async (req, res) => {
       // a "advice" attribute containing gemini's advice
       
       // from geminiAdvice.js
-      const geminiAdvice = await generateText(prompt, generationConfig);
+      const geminiAdvice = await generateText(prompt);
       return res.status(200).json({ message: "Success!", advice: geminiAdvice });
 
    } catch(e) {
