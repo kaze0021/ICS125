@@ -247,7 +247,7 @@ const get_filled_prompt = async (health_data, user_data, uid) => {
    let averageRecommendedSleep = (recommendedSleep[0] + recommendedSleep[1]) / 2;
    let averageRecommendedExercise = (recommendedExercise[0] + recommendedExercise[1]) / 2;
 
-   let location = "Irvine, CA, USA"; //TODO 
+   let location = user_data.location.address || "Unknown Location";
    
    // TODO put working prompt here
    let prompt =  `As a ${user.gender} of ${age} years old where I'm ${user.height}ft tall and ${user.weight}lbs heavy, I drank ${health_data.water} oz of water, slept ${health_data.sleep} hrs, and exercised ${health_data.exercise} hrs today.
