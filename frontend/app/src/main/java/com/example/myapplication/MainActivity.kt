@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private fun sendLocationToServer(latitude: Double, longitude: Double) {
         val queue = Volley.newRequestQueue(this)
         val url = "http://localhost:3000/update_location"
+        // val url = "http://10.0.2.2:3000"
 
         val jsonBody = JSONObject()
         jsonBody.put("latitude", latitude)
