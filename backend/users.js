@@ -8,7 +8,17 @@ const { log } = require("./utils.js")
  */
 const updateWaterIntake = async (uid, waterIntakeOz, date) => {
     try {
-        let data = (await fb.get_doc('data', uid))[date]
+        let data = (await fb.get_doc('data', uid))
+        if (!Object.hasOwn(data, date)) {
+            data = {
+                water: 0,
+                exercise: 0,
+                sleep: 0,
+                journal: ""
+            }
+        } else {
+            data = data[date]
+        }
         data.water = waterIntakeOz
         await fb.update_doc('data', uid, {
             [date]: data
@@ -28,7 +38,17 @@ const updateWaterIntake = async (uid, waterIntakeOz, date) => {
  */
 const updateSleepHours = async (uid, sleepHours, date) => {
    try {
-        let data = (await fb.get_doc('data', uid))[date]
+        let data = (await fb.get_doc('data', uid))
+        if (!Object.hasOwn(data, date)) {
+            data = {
+                water: 0,
+                exercise: 0,
+                sleep: 0,
+                journal: ""
+            }
+        } else {
+            data = data[date]
+        }
         data.sleep = sleepHours
         await fb.update_doc('data', uid, {
             [date]: data
@@ -48,7 +68,17 @@ const updateSleepHours = async (uid, sleepHours, date) => {
  */
 const updateExerciseHours = async (uid, exerciseHours, date) => {
    try {
-        let data = (await fb.get_doc('data', uid))[date]
+        let data = (await fb.get_doc('data', uid))
+        if (!Object.hasOwn(data, date)) {
+            data = {
+                water: 0,
+                exercise: 0,
+                sleep: 0,
+                journal: ""
+            }
+        } else {
+            data = data[date]
+        }
         data.exercise = exerciseHours
         await fb.update_doc('data', uid, {
             [date]: data
@@ -68,7 +98,17 @@ const updateExerciseHours = async (uid, exerciseHours, date) => {
  */
 const updateJournal = async (uid, journal, date) => {
     try {
-        let data = (await fb.get_doc('data', uid))[date]
+        let data = (await fb.get_doc('data', uid))
+        if (!Object.hasOwn(data, date)) {
+            data = {
+                water: 0,
+                exercise: 0,
+                sleep: 0,
+                journal: ""
+            }
+        } else {
+            data = data[date]
+        }
         data.journal = journal
         await fb.update_doc('data', uid, {
             [date]: data

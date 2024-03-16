@@ -25,15 +25,13 @@ const start = async () => {
    server.listen(PORT, async () => {
       setup_user_sessions()
       log("Server has started on port " + PORT)
-
-      await new_user_session("among us", "sdlfkjsldkfj")
-      await get_user_id("among us")
    })
 }
 
 const new_user_session = async (token, uid) => {
    // create connection between token & user id in db
    await fb.set_doc("sessions", token, { uid: uid })
+   log("New user session started")
 }
 
 // given a session access token, returns the UID that corresponds to it, or -1 if no session exists
